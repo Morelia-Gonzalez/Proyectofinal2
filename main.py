@@ -5,6 +5,7 @@ from pedidos import Pedido
 from conexion import crear_conexion
 
 init(autoreset=True)
+convert = True
 
 def menu_cliente():
     manager = ProductoManager()
