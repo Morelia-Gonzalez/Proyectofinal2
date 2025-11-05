@@ -1,95 +1,97 @@
 # main.py
-from producto.producto import ProductoManager
-from producto.busquedas import busqueda_secuencial, busqueda_binaria
-from producto.ordenamientos import ordenar_automaticamente
-from administrador import seguridad
-from cliente.pedido import Pedido
-import getpass
+from colorama import Fore, Style, init
+from productos_manager import ProductoManager
+from pedidos import Pedido
+from conexion import crear_conexion
 
-pm = ProductoManager()
-contador_pedidos = 1
-pedidos = []
+init(autoreset=True)
 
 def menu_cliente():
-    global contador_pedidos
+    manager = ProductoManager()
     while True:
-        print("\n=== CLIENTE ===")
+        print(Fore.CYAN + "\n--- MENÚ CLIENTE ---")
         print("1. Ver productos")
         print("2. Buscar producto")
-        print("3. Hacer pedido")
-        print("4. Salir")
-        op = input("> ")
-        if op == "1":
-            for p in pm.listar():
-                print(f"{p['id']} | {p['nombre']} | Q{p['precio']}")
-        elif op == "2":
-            nombre = input("Nombre producto: ")
-            idx, pasos = busqueda_secuencial(pm.listar(), nombre)
-            print("Resultado:", pm.listar()[idx] if idx >= 0 else "No encontrado", "pasos:", pasos)
-        elif op == "3":
-            cli = input("Nombre cliente: ")
-            items = []
-            while True:
-                pid = int(input("ID producto (0 salir): "))
-                if pid == 0: break
-                cant = int(input("Cantidad: "))
-                items.append((pid, cant))
-            pedido = Pedido(contador_pedidos, cli, items, pm.buscar_por_id)
-            print(pedido.generar_factura())
-            pedidos.append(pedido)
-            contador_pedidos += 1
-        elif op == "4":
+        print("3. Cotizar pedido")
+        print("4. Realizar pedido")
+        print("5. Salir")
+        opcion = input(Fore.YELLOW + "Seleccione una opción: ")
+
+        if opcion == "1":
+            manager.mostrar_productos()
+        elif opcion == "2":
+            termino = input("Ingrese nombre del producto: ")
+            manager.buscar_producto(termino)
+        elif opcion == "3":
+            productos = manager.obtener_productos_para_pedido()
+            if productos:
+                pedido = Pedido("Cliente genérico", productos)
+                pedido.mostrar_detalle()
+        elif opcion == "4":
+            productos = manager.obtener_productos_para_pedido()
+            if productos:
+                pedido = Pedido("Cliente genérico", productos)
+                pedido.mostrar_detalle()
+                pedido.guardar_pedido()
+        elif opcion == "5":
+            print("Saliendo del menú cliente...")
             break
+        else:
+            print(Fore.RED + "Opción inválida.")
+
 
 def menu_admin():
-    if not seguridad.leer_hash():
-        print("Primera vez: crea contraseña admin.")
-        seguridad.crear_o_cambiar()
-    else:
-        if not seguridad.verificar(getpass.getpass("Contraseña: ")):
-            print("Acceso denegado.")
-            return
+    manager = ProductoManager()
     while True:
-        print("\n=== ADMIN ===")
+        print(Fore.BLUE + "\n--- MENÚ ADMINISTRADOR ---")
         print("1. Agregar producto")
         print("2. Eliminar producto")
-        print("3. Ordenar productos automáticamente")
-        print("4. Cambiar contraseña")
+        print("3. Consultar productos")
+        print("4. Ver conteo de ventas")
         print("5. Salir")
-        op = input("> ")
-        if op == "1":
-            nid = int(input("ID: "))
+        opcion = input(Fore.YELLOW + "Seleccione una opción: ")
+
+        if opcion == "1":
             nombre = input("Nombre: ")
             precio = float(input("Precio: "))
-            cat = input("Categoría: ")
-            pm.agregar({"id": nid, "nombre": nombre, "precio": precio, "categoria": cat})
-            print("Agregado.")
-        elif op == "2":
-            pm.eliminar(int(input("ID a eliminar: ")))
-            print("Eliminado.")
-        elif op == "3":
-            metodo, lista_ordenada = ordenar_automaticamente(pm.listar())
-            print(f"Ordenado con {metodo}:")
-            for p in lista_ordenada:
-                print(p)
-        elif op == "4":
-            seguridad.crear_o_cambiar()
-        elif op == "5":
+            manager.agregar_producto(nombre, precio)
+        elif opcion == "2":
+            id_producto = int(input("ID del producto: "))
+            manager.eliminar_producto(id_producto)
+        elif opcion == "3":
+            manager.mostrar_productos()
+        elif opcion == "4":
+            conexion = crear_conexion()
+            cursor = conexion.cursor()
+            cursor.execute("SELECT COUNT(*) FROM pedidos")
+            total = cursor.fetchone()[0]
+            print(f"\nTotal de ventas registradas: {total}")
+            conexion.close()
+        elif opcion == "5":
+            print("Saliendo del menú administrador...")
             break
+        else:
+            print(Fore.RED + "Opción inválida.")
+
 
 def main():
+    print(Fore.WHITE + Style.BRIGHT + "\nSISTEMA DE VENTAS - CREATIVE DESIGNS")
     while True:
-        print("\n=== SISTEMA CREATIVE DESIGNS ===")
-        print("1. Cliente")
+        print(Fore.WHITE + "\n1. Cliente")
         print("2. Administrador")
         print("3. Salir")
-        op = input("> ")
-        if op == "1":
-            menu_cliente()
-        elif op == "2":
-            menu_admin()
-        elif op == "3":
-            print("Fin del programa.")
-            break
+        opcion = input(Fore.YELLOW + "Seleccione una opción: ")
 
-main()
+        if opcion == "1":
+            menu_cliente()
+        elif opcion == "2":
+            menu_admin()
+        elif opcion == "3":
+            print("Saliendo del sistema...")
+            break
+        else:
+            print(Fore.RED + "Opción no válida.")
+
+
+if __name__ == "__main__":
+    main()

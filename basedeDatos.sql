@@ -31,6 +31,14 @@ CREATE TABLE clientes (
     direccion TEXT
 );
 
+-- Tabla de Pedidos
+CREATE TABLE pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cliente VARCHAR(100),
+    total DECIMAL(10,2),
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Insertar Categorías
 INSERT INTO CategoriaSticker (nombre, descripcion) VALUES
 ('Vinilo de Corte', 'Stickers resistentes al intemperie, ideales para vehículos'),
@@ -41,38 +49,38 @@ INSERT INTO CategoriaSticker (nombre, descripcion) VALUES
 -- Insertar Productos (Stickers)
 
 -- Vinilo de Corte
-INSERT INTO Sticker (categoria_id, nombre, precio, medida, especificaciones) VALUES
-(1, 'Sticker Vinilo Corte 15x15 o menos', 20.00, '15x15 cm o menos', 
- 'No se despintan. Resistentes al intemperie, ideal para vehículos');
+INSERT INTO Sticker (categoria_id, nombre, precio, medida, especificaciones, colores) VALUES
+(1, 'Sticker Vinilo Corte 15x15 o menos', 20.00, '15x15 cm o menos',
+ 'No se despintan. Resistentes al intemperie, ideal para vehículos', 'Blanco, Negro');
 
 -- Holográficos
-INSERT INTO Sticker (categoria_id, nombre, precio, medida, especificaciones) VALUES
-(2, 'Sticker Holográfico con corte electrónico', 40.00, 'Hoja A4 - 8/9 por hoja', 
- 'Corte electrónico preciso'),
-(2, 'Sticker Holográfico sin corte', 30.00, 'Hoja A4 - 8/9 por hoja', 
- 'Impreso sin corte, hoja completa');
+INSERT INTO Sticker (categoria_id, nombre, precio, medida, especificaciones, colores) VALUES
+(2, 'Sticker Holográfico con corte electrónico', 40.00, 'Hoja A4 - 8/9 por hoja',
+ 'Corte electrónico preciso', 'Multicolor'),
+(2, 'Sticker Holográfico sin corte', 30.00, 'Hoja A4 - 8/9 por hoja',
+ 'Impreso sin corte, hoja completa', 'Multicolor');
 
 -- Papel Adhesivo
-INSERT INTO Sticker (categoria_id, nombre, precio, medida, especificaciones) VALUES
-(3, 'Sticker Papel Adhesivo con corte electrónico', 35.00, 'Hoja carta - 6/7 por hoja', 
- 'Con corte electrónico de precisión'),
-(3, 'Sticker Papel Adhesivo sin corte', 30.00, 'Hoja carta - 6/7 por hoja', 
- 'Solo impresión, sin corte');
+INSERT INTO Sticker (categoria_id, nombre, precio, medida, especificaciones, colores) VALUES
+(3, 'Sticker Papel Adhesivo con corte electrónico', 35.00, 'Hoja carta - 6/7 por hoja',
+ 'Con corte electrónico de precisión', 'Blanco'),
+(3, 'Sticker Papel Adhesivo sin corte', 30.00, 'Hoja carta - 6/7 por hoja',
+ 'Solo impresión, sin corte', 'Blanco');
 
 -- Vinilos Especiales
-INSERT INTO Sticker (categoria_id, nombre, precio, medida, especificaciones) VALUES
-(4, 'Vinilo Dorado Espejo', 30.00, '15x15 cm o menos', 
- 'Acabado espejo dorado, cualquier diseño'),
-(4, 'Vinilo Cromo Espejo', 30.00, '15x15 cm o menos', 
- 'Acabado cromado brillante, cualquier diseño'),
-(4, 'Vinilo Tornasol', 30.00, '15x15 cm o menos', 
- 'Efecto tornasol multicolor, cualquier diseño'),
-(4, 'Vinilo Reflectivo Amarillo', 40.00, '15x15 cm o menos', 
- 'Alta visibilidad, color amarillo reflectivo'),
-(4, 'Vinilo Reflectivo Rojo', 40.00, '15x15 cm o menos', 
- 'Alta visibilidad, color rojo reflectivo'),
-(4, 'Vinilo Reflectivo Blanco', 40.00, '15x15 cm o menos', 
- 'Alta visibilidad, color blanco reflectivo');
+INSERT INTO Sticker (categoria_id, nombre, precio, medida, especificaciones, colores) VALUES
+(4, 'Vinilo Dorado Espejo', 30.00, '15x15 cm o menos',
+ 'Acabado espejo dorado, cualquier diseño', 'Dorado'),
+(4, 'Vinilo Cromo Espejo', 30.00, '15x15 cm o menos',
+ 'Acabado cromado brillante, cualquier diseño', 'Plateado'),
+(4, 'Vinilo Tornasol', 30.00, '15x15 cm o menos',
+ 'Efecto tornasol multicolor, cualquier diseño', 'Tornasol'),
+(4, 'Vinilo Reflectivo Amarillo', 40.00, '15x15 cm o menos',
+ 'Alta visibilidad, color amarillo reflectivo', 'Amarillo'),
+(4, 'Vinilo Reflectivo Rojo', 40.00, '15x15 cm o menos',
+ 'Alta visibilidad, color rojo reflectivo', 'Rojo'),
+(4, 'Vinilo Reflectivo Blanco', 40.00, '15x15 cm o menos',
+ 'Alta visibilidad, color blanco reflectivo', 'Blanco');
 
 -- Insertar algunos clientes de ejemplo
 INSERT INTO clientes (nombre, apellido, telefono, email, direccion) VALUES
