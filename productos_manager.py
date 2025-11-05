@@ -1,89 +1,83 @@
-# productos_manager.py
 from conexion import crear_conexion
-from colorama import Fore
 
 class ProductoManager:
     def __init__(self):
         self.conexion = crear_conexion()
 
     def mostrar_productos(self):
-        """Muestra todos los productos disponibles con su categoría y precio."""
-        cursor = self.conexion.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT s.id, s.nombre, s.precio, c.nombre AS categoria, s.medida
-            FROM Sticker s
-            JOIN CategoriaSticker c ON s.categoria_id = c.id
-            ORDER BY c.nombre, s.nombre;
-        """)
-        productos = cursor.fetchall()
-        if not productos:
-            print(Fore.RED + "No hay productos registrados.")
-            return
-        print(Fore.CYAN + "\n--- LISTA DE PRODUCTOS ---")
-        for p in productos:
-            print(f"{Fore.WHITE}ID: {p['id']} | {p['nombre']} | "
-                  f"Categoría: {p['categoria']} | Precio: Q{p['precio']} | Medida: {p['medida']}")
-        cursor.close()
+        """Muestra todos los productos con su categoría y precio."""
+        try:
+            cursor = self.conexion.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT 
+                    s.id, 
+                    s.nombre, 
+                    s.precio, 
+                    c.nombre AS categoria, 
+                    s.medida, 
+                    s.especificaciones
+                FROM Sticker s
+                JOIN CategoriaSticker c ON s.categoria_id = c.id
+                ORDER BY c.nombre, s.nombre;
+            """)
+            productos = cursor.fetchall()
+            print("\n--- LISTA DE PRODUCTOS DISPONIBLES ---")
+            for p in productos:
+                print(f"[{p['id']}] {p['nombre']} | Categoría: {p['categoria']} | "
+                      f"Medida: {p['medida']} | Precio: Q{p['precio']:.2f}")
+                print(f"  → {p['especificaciones']}\n")
+            cursor.close()
+        except Exception as e:
+            print("Error al mostrar los productos:", e)
 
-    def buscar_producto(self, termino):
-        """Busca productos por nombre."""
-        cursor = self.conexion.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT id, nombre, precio, medida FROM Sticker
-            WHERE nombre LIKE %s
-        """, (f"%{termino}%",))
-        resultados = cursor.fetchall()
-        if resultados:
-            print(Fore.GREEN + f"\nResultados para '{termino}':")
-            for r in resultados:
-                print(f"ID {r['id']} | {r['nombre']} | Q{r['precio']} | {r['medida']}")
-        else:
-            print(Fore.RED + "No se encontraron productos con ese nombre.")
-        cursor.close()
+    def buscar_producto(self, nombre):
+        """Busca un producto por nombre."""
+        try:
+            cursor = self.conexion.cursor(dictionary=True)
+            consulta = """
+                SELECT 
+                    s.id, 
+                    s.nombre, 
+                    s.precio, 
+                    c.nombre AS categoria, 
+                    s.medida, 
+                    s.especificaciones
+                FROM Sticker s
+                JOIN CategoriaSticker c ON s.categoria_id = c.id
+                WHERE s.nombre LIKE %s;
+            """
+            cursor.execute(consulta, (f"%{nombre}%",))
+            resultados = cursor.fetchall()
+            if resultados:
+                print(f"\nResultados de búsqueda para '{nombre}':")
+                for p in resultados:
+                    print(f"[{p['id']}] {p['nombre']} | Categoría: {p['categoria']} | "
+                          f"Medida: {p['medida']} | Precio: Q{p['precio']:.2f}")
+                    print(f"  → {p['especificaciones']}\n")
+            else:
+                print(f"No se encontraron productos que coincidan con '{nombre}'.")
+            cursor.close()
+        except Exception as e:
+            print("Error al buscar el producto:", e)
 
-    def obtener_productos_para_pedido(self):
-        """Permite seleccionar productos para cotización o pedido."""
-        productos = []
-        while True:
-            id_prod = input(Fore.WHITE + "Ingrese ID del producto (0 para finalizar): ")
-            if id_prod == "0":
-                break
-            try:
-                id_prod = int(id_prod)
-                cursor = self.conexion.cursor(dictionary=True)
-                cursor.execute("SELECT id, nombre, precio FROM Sticker WHERE id = %s", (id_prod,))
+    def cotizar_pedido(self, productos_seleccionados, envio=20.0):
+        """Calcula el total de una cotización, incluyendo envío."""
+        try:
+            cursor = self.conexion.cursor(dictionary=True)
+            total = 0
+            print("\n--- COTIZACIÓN ---")
+            for prod_id, cantidad in productos_seleccionados.items():
+                cursor.execute("SELECT nombre, precio FROM Sticker WHERE id = %s", (prod_id,))
                 producto = cursor.fetchone()
-                cursor.close()
                 if producto:
-                    cantidad = int(input("Cantidad: "))
-                    productos.append({
-                        "id": producto["id"],
-                        "nombre": producto["nombre"],
-                        "precio": producto["precio"],
-                        "cantidad": cantidad
-                    })
+                    subtotal = producto['precio'] * cantidad
+                    total += subtotal
+                    print(f"{producto['nombre']} x{cantidad} → Q{subtotal:.2f}")
                 else:
-                    print(Fore.RED + "Producto no encontrado.")
-            except ValueError:
-                print(Fore.RED + "Ingrese un número válido.")
-        return productos
-
-    def agregar_producto(self, nombre, precio):
-        """Agrega un producto nuevo (simple, sin categoría)."""
-        cursor = self.conexion.cursor()
-        cursor.execute("INSERT INTO Sticker (nombre, precio) VALUES (%s, %s)", (nombre, precio))
-        self.conexion.commit()
-        cursor.close()
-        print(Fore.GREEN + "Producto agregado correctamente.")
-
-    def eliminar_producto(self, id_producto):
-        """Elimina un producto existente."""
-        cursor = self.conexion.cursor()
-        cursor.execute("DELETE FROM Sticker WHERE id = %s", (id_producto,))
-        self.conexion.commit()
-        if cursor.rowcount > 0:
-            print(Fore.GREEN + "Producto eliminado con éxito.")
-        else:
-            print(Fore.RED + "No se encontró el producto con ese ID.")
-        cursor.close()
-
+                    print(f"ID {prod_id} no encontrado.")
+            print(f"\nCosto de envío: Q{envio:.2f}")
+            total_final = total + envio
+            print(f"TOTAL FINAL: Q{total_final:.2f}\n")
+            cursor.close()
+        except Exception as e:
+            print("Error al generar la cotización:", e)
